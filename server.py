@@ -1,15 +1,9 @@
 from flask import Flask, jsonify, request, abort
+from dogDao import dogDao
 
 app = Flask(__name__,
             static_url_path='',
-            static_folder='../')
-
-dogs = [{"id":1, "Breed":"Pug", "Owner":"Michael Smith", "Price":300},
-        {"id":2, "Breed":"Labrador", "Owner":"Mary Jones", "Price":500},
-        {"id":3, "Breed":"Poodle", "Owner":"Sean Walsh", "Price":200},
-        {"id":4, "Breed":"Collie", "Owner":"Jack Kennedy", "Price":350},
-]
-nextID=4
+            static_folder='staticpages')
 
 @app.route('/')
 def index():
@@ -18,59 +12,53 @@ def index():
 # get all dogs
 @app.route('/dogs')
 def getall():
-    return jsonify(dogs)
+    return jsonify(dogDao.getAll())
 
 # find dogs by ID
-@app.route('/dogs/<int:id>')
-def findbyID(id):
-    founddogs = list(filter(lambda t : t["id"]== id, dogs))
-    if len(founddogs)==0:
-        return jsonify({}), 204
-    return jsonify(founddogs[0])
+# curl http://127.0.0.1:5000/dogs/123
+@app.route('/dogs/<int:ID>')
+def findbyID(ID):
+    return jsonify(dogDao.findbyID(ID))
 
 # create dog
-# curl -X POST -H "content-type:application/json" -d "{\"Breed\":\"Bulldog\", \"Owner\":\"Teresa Daly\", \"Price\":650}" http://127.0.0.1:5000/dogs
+# curl -X POST -H "content-type:application/json" -d "{\"ID\":125, \"Breed\":\"Bulldog\", \"Ownedby\":\"Teresa Daly\", \"Price\":650}" http://127.0.0.1:5000/dogs
 @app.route('/dogs', methods = ['POST'])
 def create():
-    global nextID
     if not request.json:
         abort(400)
     dog = {
-        "id": nextID,
+        "ID": request.json['ID'],
         "Breed": request.json["Breed"],
-        "Owner": request.json["Owner"],
+        "Ownedby": request.json["Ownedby"],
         "Price": request.json["Price"]
     }
-    dogs.append(dog)
-    nextID += 1
-    return jsonify(dog)
+
+    return jsonify(dogDao.create(dog))
    
 
 # update dog
 # curl -X PUT -d "{\"Breed\":\"Rottweiler\", \"Price\":780}" -H "content-type:application/json" http://127.0.0.1:5000/dogs/3
-@app.route('/dogs/<int:id>', methods = ['PUT'])
-def update(id):
-    founddogs = list(filter(lambda t : t["id"]== id, dogs))
-    if len(founddogs)==0:
+@app.route('/dogs/<int:ID>', methods = ['PUT'])
+def update(ID):
+    founddog = dogDao.findbyID(ID)
+    if len(founddog)=={}:
         return jsonify({}), 404
-    currentDog = founddogs[0]
+    currentDog = founddog
     if 'Breed' in request.json:
         currentDog['Breed'] = request.json['Breed']
     if 'Owner' in request.json:
-        currentDog['Owner'] = request.json['Owner']
+        currentDog['Ownedby'] = request.json['Ownedby']
     if 'Price' in request.json:
         currentDog['Price'] = request.json['Price']
-    
+    dogDao.update(currentDog)
     return jsonify(currentDog)
     
 
 # delete dog
-@app.route('/dogs/<int:id>', methods = ['DELETE']) 
-def delete(id):
-    founddogs = list(filter(lambda t : t["id"]== id, dogs))
-    if len(founddogs)==0:
-        return jsonify({}), 404
-    dogs.remove(founddogs[0])
+# curl -X DELETE http://127.0.0.1:5000/dogs/1
+@app.route('/dogs/<int:ID>', methods = ['DELETE']) 
+def delete(ID):
+    dogDao.delete(ID)
 
     return jsonify({"done": True})
 
