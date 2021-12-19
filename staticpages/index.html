@@ -1,12 +1,16 @@
 <html>
     <head>
-
+        <title>View Dogs</title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>   
+        
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" 
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 
     </head>
     <body>
         <div id = "create-edit" style = "display: none;">
             <h2>Create-Edit</h2>
-            <table>
+            <table id ="CreateUpdateForm">
                 <tr>
                     <td>ID</td>
                     <td><input type="text" name = "id"></td>
@@ -23,29 +27,125 @@
                     <td>Price</td><td>
                     <input type="currency" name = "Price"></td>
                 </tr>
-                    <td></td><td><button id = "create-edit button">go</button></td>
+                    <td></td><td><button id = "create button" onclick= "doCreate()">Create</button></td>
                 </tr>
             </table>
-        </div>
+        </div> 
 
         <div id="display">
             <h2>Dogs</h2>
-            <table id = "dogtable">
+            <button onclick = "showCreate()">Create</button>
+            <table id = "dogtable" class = "table">
                 <tr>
                     <th>ID</th><th>Breed</th><th>Owned by</th><th>Price</th><th></th><th></th>
-                </tr>
-                <tr id = "1">
-                    <td>123</td>
-                    <td>Pug</td>
-                    <td>Aoife Daly</td>
-                    <td>200</td>
-
                 </tr>
 
 
             </table>
 
-        </div>
+        </div>  
+        <script>
+            function showCreate(){
+                document.getElementById('display').style.display = "none"
+                document.getElementById('create-edit').style.display = "block"
+
+            }
+            function doCreate(){
+                dog = getdogfromform()
+                console.log(dog)
+                $.ajax({
+                    url:"/dogs",
+                    data:JSON.stringify(dog),
+                    method:"POST",
+                    dataType:"JSON",
+                    contentType: "application/json; charset=utf-8",
+                    success:function(result){
+                        console.log(result)
+                        adddogtotable(dog)
+                        showDisplay()
+                    },
+                    error:function(xhr, status, error){
+                        console.log("error"+error)
+                    }
+                })
+                showDisplay()
+            }
+
+            function doDelete(Element){
+                var tableElement = document.getElementById('dogtable');
+                var rowElement = Element.parentNode.parentNode;
+                var index = rowElement.rowindex;
+                ID = rowElement.getAttribute("ID");
+                $.ajax({
+                    url:"/dogs/"+ID,
+                    method:"DELETE",
+                    dataType:"JSON",
+                    success:function(result){
+                        tableElement.deleteRow(index);
+                    },
+                    error:function(xhr,status,error){
+                        console.log(error)
+                    }
+
+                })
+                tableElement.deleteRow(index);
+            }
+            function getdogfromform(){
+                var form = document.getElementById('CreateUpdateForm')
+
+                var dog = {}    
+                //dog.ID = form.querySelector('input[name="ID"]').value
+                dog.Breed = form.querySelector('input[name="Breed"]').value
+                dog.Ownedby = form.querySelector('input[name="Ownedby"]').value
+                dog.Price = form.querySelector('input[name="Price"]').value
+                
+                return dog
+
+            }
+            function showDisplay(){
+                document.getElementById('display').style.display = "block"
+                document.getElementById('create-edit').style.display = "none"
+
+            }
+
+
+            function filltable(){
+                $.ajax({
+                    url:'http://127.0.0.1:5000/dogs',
+                    method:'GET',
+                    datatype:"JSON",
+                    success:function(results){
+                        for (dog of results){
+                            adddogtotable(dog)
+                        }
+                    },
+                    error:function (xhr, status, error){
+                        console.log("error "+error +" code:"+status)
+                    }
+                })
+
+            }
+            function adddogtotable(dog){
+                tableElement = document.getElementById("dogtable")
+                rowelement = tableElement.insertRow(-1)
+                rowelement.setAttribute("ID", dog.ID)
+                cell1 = rowelement.insertCell(0)
+                cell1.innerHTML = dog.ID
+                cell2 = rowelement.insertCell(1)
+                cell2.innerHTML = dog.Breed
+                cell3 = rowelement.insertCell(2)
+                cell3.innerHTML = dog.Ownedby
+                cell4 = rowelement.insertCell(1)
+                cell4.innerHTML = dog.Price
+                cell5 = rowelement.insertCell(4)
+                cell5.innerHTML = '<button onclick = "showupdate">Update</button>'
+                cell6 = rowelement.insertCell(5)
+                cell6.innerHTML = '<button onclick = "Delete">Delete</button>'
+            }
+
+            filltable()
+
+        </script>
     </body>
 
 </html>
