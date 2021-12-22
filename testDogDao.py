@@ -14,7 +14,7 @@ dog2 = {
     'Price': 300
 }
 
-#returnValue = dogDao.create(dog)
+returnValue = dogDao.create(dog)
 returnValue = dogDao.getAll()
 print(returnValue)
 
