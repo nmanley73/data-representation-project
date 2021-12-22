@@ -5,15 +5,55 @@
         
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" 
         integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-
+        <style>
+            /* font family for all text */
+        * {
+			font-family:Arial, Times;
+		  }
+          /* attributes for table header */
+        th {
+        border: 1px solid #dddddd;
+        text-align: left;
+        padding: 8px;
+        background-color:white;
+        }
+        /* style for table */
+        table {
+        border: 1px solid #dddddd;
+        text-align: left;
+        padding: 8px;
+        color:black;
+        font: white;
+    }
+        /* style for H2 header*/
+        h2 {
+        color: black;
+        font-size: 50;
+        text-align: left;
+        font: white
+        }
+        /* insert background image*/
+        body {
+        background-image: url('images/dogs.jpg');
+        }
+        .currencyinput {
+    border: 1px inset #ccc;
+}
+.currencyinput input {
+    border: 0;
+}
+        </style>
     </head>
     <body>
-        <div id = "create-edit" style = "display: none;">
-            <h2>Create-Edit</h2>
-            <table id ="CreateUpdateForm">
+        <div id = "create-update" style = "display: none">
+            <br>
+            <br>
+            <!--Table to enter dog details-->
+            <h2><b>Create/Edit Dog record</b></h2>
+            <table align = "left" width ="250" border ="black" border = "10px" bgcolor = "white" cellpadding="5"cellspacing="10" id ="CreateUpdateForm">
                 <tr>
-                    <td>ID</td>
-                    <td><input type="text" name = "id"></td>
+                    <td>ID</td><td>
+                    <input required type = "number" name = "ID" id = "getID"></td>
                 </tr>
                 <tr>
                     <td>Breed</td><td>
@@ -25,31 +65,91 @@
                 </tr>
                 <tr>
                     <td>Price</td><td>
-                    <input type="currency" name = "Price"></td>
+                    <input required type = "currency" name="Price"></td>
                 </tr>
-                    <td></td><td><button id = "create button" onclick= "doCreate()">Create</button></td>
+                    <td></td><td>
+                        <button id = "create-button" onclick= "doCreate()">Create Record</button>
+                        <button id = "update-button" onclick= "doUpdate()">Update record</button>
+
+                    </td>
                 </tr>
             </table>
+
         </div> 
 
         <div id="display">
-            <h2>Dogs</h2>
-            <button onclick = "showCreate()">Create</button>
-            <table id = "dogtable" class = "table">
+            <br>
+            <h2><b>Dogs Vet Clinic</b></h2>
+            <button onclick = "showCreate()">Create Dog</button>
+            <!--Display table of dogs-->
+            <table id = "dogtable" class = "table" bgcolor=”black">
                 <tr>
-                    <th>ID</th><th>Breed</th><th>Owned by</th><th>Price</th><th></th><th></th>
+                    <th>ID</th><th>Breed</th><th>Owned by</th><th>Price</th><th>Update</th><th>Delete</th>
                 </tr>
+            </table>
 
-
+            <table id = "vettable" class = "table" bgcolor=”black">
+                <tr>
+                    <th>VetID</th><th>Name</th><th>Mobile</th><th>Type</th><th>Update</th><th>Delete</th>
+                </tr>
             </table>
 
         </div>  
         <script>
+
+            // display button for create
             function showCreate(){
                 document.getElementById('display').style.display = "none"
-                document.getElementById('create-edit').style.display = "block"
+                document.getElementById('update-button').style.display = "none"
+                document.getElementById('create-button').style.display = "block"
+                document.getElementById('create-update').style.display = "block"
+            }
+            // display updated record
+            function showUpdate(thisElem){
+            
+                var rowElement = thisElem.parentNode.parentNode;
+                ID = rowElement.getAttribute("ID");
+                dog = readdogFromrow(rowElement)
+                populateForm(dog)
+            // display button for update
+                document.getElementById('display').style.display = "none"
+                document.getElementById('update-button').style.display = "block"
+                document.getElementById('create-button').style.display = "none"
+                document.getElementById('create-update').style.display = "block"
+            }
+            function readdogFromrow(rowElement){
+                dog = {}
+                dog.ID = rowElement.getAttribute("ID");
+                dog.Breed = rowElement.cells[1].firstChild.textContent
+                dog.Ownedby = rowElement.cells[2].firstChild.textContent
+                dog.Price = rowElement.cells[3].firstChild.textContent
+
+                return dog
 
             }
+
+            function populateForm(dog){
+
+                var form = document.getElementById('CreateUpdateForm')
+
+                form.querySelector('input[name="ID"]').value = dog.ID
+                form.querySelector('input[name="ID"]').disabled = true
+                form.querySelector('input[name="Breed"]').value = dog.Breed
+                form.querySelector('input[name="Ownedby"]').value = dog.Ownedby
+                form.querySelector('input[name="Price"]').value = dog.Price
+            }
+              // clear form to create a new record
+            function clearForm(){
+
+                var form = document.getElementById('CreateUpdateForm')
+                form.querySelector('input[name="ID"]').value = ''
+                form.querySelector('input[name="ID"]').disabled = false
+                form.querySelector('input[name="Breed"]').value = ''
+                form.querySelector('input[name="Ownedby"]').value = ''
+                form.querySelector('input[name="Price"]').value = ''
+
+}
+            // connect to database and create record
             function doCreate(){
                 dog = getdogfromform()
                 console.log(dog)
@@ -63,19 +163,74 @@
                         console.log(result)
                         adddogtotable(dog)
                         showDisplay()
+                        clearForm()
                     },
                     error:function(xhr, status, error){
                         console.log("error"+error)
                     }
                 })
-                showDisplay()
+                //showDisplay()
             }
 
-            function doDelete(Element){
+            // connect to database and create record
+            function doCreate(){
+                dog = getdogfromform()
+                console.log(dog)
+                $.ajax({
+                    url:"/vet",
+                    data:JSON.stringify(dog),
+                    method:"POST",
+                    dataType:"JSON",
+                    contentType: "application/json; charset=utf-8",
+                    success:function(result){
+                        console.log(result)
+                        adddogtotable(dog)
+                        showDisplay()
+                        clearForm()
+                    },
+                    error:function(xhr, status, error){
+                        console.log("error"+error)
+                    }
+                })
+                //showDisplay()
+            }
+            // connect to database and update record
+            function doUpdate(){
+                dog = getdogfromform()
+                updateServer(dog)
+                //updateTableRow(dog)
+               //showDisplay()
+
+            }
+
+            function updateServer(dog){
+                $.ajax({
+                    url:'/dogs/' +dog.ID,
+                    data:JSON.stringify(dog),
+                    method: 'PUT',
+                    dataType: "JSON",
+                    contentType: "application/json; charset utf-8",
+                    success: function (result){
+                        console.log(result)
+                        updateTableRow(dog)
+                        showDisplay()
+                        clearForm()
+
+                    },
+                    error: function (xhr, status, error){
+                        console.log("error" + error)
+                    }
+                })
+
+            }
+            // connect to database and delete record
+            function doDelete(myElem){
                 var tableElement = document.getElementById('dogtable');
-                var rowElement = Element.parentNode.parentNode;
+                var rowElement = myElem.parentNode.parentNode;
                 var index = rowElement.rowindex;
                 ID = rowElement.getAttribute("ID");
+                console.log(ID)
+            
                 $.ajax({
                     url:"/dogs/"+ID,
                     method:"DELETE",
@@ -88,13 +243,19 @@
                     }
 
                 })
-                tableElement.deleteRow(index);
             }
+            function updateTableRow(dog){
+                rowElement = document.getElementById(dog.ID)
+                rowElement.cells[1].firstChild.textContent = dog.Breed
+                rowElement.cells[2].firstChild.textContent = dog.Ownedby
+                rowElement.cells[3].firstChild.textContent = dog.Price
+            }
+            // connect to database and create record
             function getdogfromform(){
                 var form = document.getElementById('CreateUpdateForm')
 
-                var dog = {}    
-                //dog.ID = form.querySelector('input[name="ID"]').value
+                var dog = {} 
+                dog.ID = form.querySelector('input[name="ID"]').value
                 dog.Breed = form.querySelector('input[name="Breed"]').value
                 dog.Ownedby = form.querySelector('input[name="Ownedby"]').value
                 dog.Price = form.querySelector('input[name="Price"]').value
@@ -104,16 +265,15 @@
             }
             function showDisplay(){
                 document.getElementById('display').style.display = "block"
-                document.getElementById('create-edit').style.display = "none"
+                document.getElementById('create-update').style.display = "none"
 
             }
-
-
+            // connect to database and display records
             function filltable(){
                 $.ajax({
                     url:'http://127.0.0.1:5000/dogs',
                     method:'GET',
-                    datatype:"JSON",
+                    dataType:"JSON",
                     success:function(results){
                         for (dog of results){
                             adddogtotable(dog)
@@ -125,24 +285,24 @@
                 })
 
             }
+            // Add new record to table
             function adddogtotable(dog){
                 tableElement = document.getElementById("dogtable")
-                rowelement = tableElement.insertRow(-1)
-                rowelement.setAttribute("ID", dog.ID)
-                cell1 = rowelement.insertCell(0)
+                rowElement = tableElement.insertRow(-1)
+                rowElement.setAttribute("ID", dog.ID)
+                cell1 = rowElement.insertCell(0)
                 cell1.innerHTML = dog.ID
-                cell2 = rowelement.insertCell(1)
+                cell2 = rowElement.insertCell(1)
                 cell2.innerHTML = dog.Breed
-                cell3 = rowelement.insertCell(2)
+                cell3 = rowElement.insertCell(2)
                 cell3.innerHTML = dog.Ownedby
-                cell4 = rowelement.insertCell(1)
+                cell4 = rowElement.insertCell(3)
                 cell4.innerHTML = dog.Price
-                cell5 = rowelement.insertCell(4)
-                cell5.innerHTML = '<button onclick = "showupdate">Update</button>'
-                cell6 = rowelement.insertCell(5)
-                cell6.innerHTML = '<button onclick = "Delete">Delete</button>'
+                cell5 = rowElement.insertCell(4)
+                cell5.innerHTML = '<button onclick = "showUpdate(this)">Update</button>'
+                cell6 = rowElement.insertCell(5)
+                cell6.innerHTML = '<button onclick = "doDelete(this)">Delete</button>'
             }
-
             filltable()
 
         </script>
